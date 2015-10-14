@@ -1,0 +1,4 @@
+default:
+  suites:
+    core:
+      contexts: [ FlightsContext ]
