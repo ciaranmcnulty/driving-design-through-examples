@@ -359,7 +359,7 @@ class FlightsContext implements Context
     /**
      * @Given a flight :arg1 flies the :arg2 to :arg3 route
      */
-    public function aFlightGoesFromTo($arg1, $arg2, $arg3)
+    public function aFlightFliesTheRoute($arg1, $arg2, $arg3)
     {
         throw new PendingException();
     }
@@ -387,7 +387,7 @@ class FlightsContext implements Context
     /**
      * @Given a flight :flightnumber flies the :origin to :destination route
      */
-    public function aFlightGoesFromTo($flightnumber, $origin, $destination)
+    public function aFlightFliesTheRoute($flightnumber, $origin, $destination)
     {
         $this->flight = new Flight(
             FlightNumber::fromString($flightnumber),
@@ -431,14 +431,14 @@ public function transformAirport($code)
 /**
  * @Given a flight :flightnumber flies the :origin to :destination route
  */
-public function aFlightGoesFromTo(
+public function aFlightFliesTheRoute(
     FlightNumber $flightnumber,
     Airport $origin,
     Airport $destination
 )
 {
     $this->flight = new Flight(
-        $flightnumber, Route::fromTo($origin, $destination)
+        $flightnumber, Route::between($origin, $destination)
     );
 }
 ```
@@ -568,7 +568,7 @@ public function theCurrentListedFareForTheToRouteIsPs(
 {
     $this->fareList = new Fake\FareList();
     $this->fareList->listFare(
-        Route::fromTo($origin,$destination),
+        Route::between($origin, $destination),
         Fare::fromString($fare)
     );
 }
@@ -763,7 +763,7 @@ class Ticket
 
     public function pay(Fare $fare)
     {
-        $this->fare = $fare->deduct($fare);
+        $this->fare = $this->fare->deduct($fare);
     }
 
     public function isCompletelyPaid()
@@ -806,7 +806,7 @@ class Fare
 
     public function deduct(Fare $amount)
     {
-        return new self($this->pence - $amount->pence);
+        return new Fare($this->pence - $amount->pence);
     }
 }
 ```
@@ -822,13 +822,13 @@ class FareSpec extends ObjectBehavior
     function it_knows_when_it_is_zero()
     {
         $this->beConstructedFromString('0.00');
-        $this->isZero()->shouldReturn(true);
+        $this->shouldBeZero();
     }
 
     function it_is_not_zero_when_it_has_a_value()
     {
         $this->beConstructedFromString('10.00');
-        $this->isZero()->shouldReturn(false);
+        $this->shouldNotBeZero();
     }
 }
 ```
@@ -867,7 +867,7 @@ class TicketIssuerSpec extends ObjectBehavior
 {
     function it_issues_a_ticket_with_the_correct_fare(\FareList $fareList)
     {
-        $route = Route::fromTo(Airport::fromCode('LHR'), Airport::fromCode('MAN'));
+        $route = Route::between(Airport::fromCode('LHR'), Airport::fromCode('MAN'));
         $flight = new Flight(FlightNumber::fromString('XX001'), $route);
 
         $fareList->findFareFor($route)->willReturn(Fare::fromString('50'));
